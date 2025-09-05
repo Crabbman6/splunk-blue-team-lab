@@ -9,3 +9,5 @@ Splunk installs itself under `/opt/splunk`. To start it, go into the `bin` folde
 
 ```bash
 cd /opt/splunk/bin
+
+<img width="654" height="441" alt="image" src="https://github.com/user-attachments/assets/ac6e7dbc-4c1d-4001-85b4-900fe2c01721" />
