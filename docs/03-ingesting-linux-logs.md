@@ -1,6 +1,6 @@
 # SIEM Log Ingestion: Linux Endpoint
 
-This project documents the foundational process of ingesting logs from a Linux endpoint into a Splunk SIEM. Centralizing logs is a core function of a **Security Operations Center (SOC)**, enabling analysts to monitor for threats, investigate incidents, and maintain security posture across an environment.
+This project documents the end-to-end process of ingesting logs from a Linux endpoint into a Splunk SIEM. Centralizing logs is a core function of a **Security Operations Center (SOC)**, enabling analysts to monitor for threats, investigate incidents, and maintain security posture across an environment.
 
 ---
 
@@ -12,23 +12,49 @@ The first step is to identify the most valuable log sources on the Linux machine
 * `/var/log/auth.log`: This is a **high-value security log**. It records all authentication events, including successful and failed SSH login attempts, `sudo` command usage (privilege escalation), and user account modifications. Analyzing this log is critical for detecting brute-force attacks, unauthorized access, and insider threats.
 * `/var/log/syslog`: This log provides broad **operational context**. It captures messages from the kernel, system daemons, and various applications. It's useful for correlating system errors or service crashes with potential malicious activity.
 
-The following image confirms the presence of these log files on the target endpoint.
-
 <img width="822" height="441" alt="image" src="https://github.com/user-attachments/assets/af1cded7-8da3-4267-9f8c-9aa82dff000e" />
 
 ---
 
 ## Step 2: Forwarder Deployment
 
-A **log forwarder** is a lightweight agent installed on an endpoint to collect logs and send them to a central location, in this case, our Splunk SIEM.
-
-For this project, **Filebeat** was selected as the forwarder. While Splunk has a native Universal Forwarder, experience with Filebeat is also valuable as it's widely used and demonstrates flexibility with different toolsets. The image below confirms the successful installation of the Filebeat agent on the Linux host.
-
+A **log forwarder** is a lightweight agent installed on an endpoint to collect logs and send them to a central location. For this project, **Filebeat** was selected. While Splunk has a native Universal Forwarder, experience with Filebeat demonstrates flexibility with different toolsets. The image below confirms the successful installation of the agent.
 
 <img width="822" height="441" alt="image" src="https://github.com/user-attachments/assets/4c4b9ff1-be59-4727-88a7-33279e30c278" />
 
 ---
 
-## Next Steps
+## Step 3: Forwarder Configuration
 
-With the agent installed, the next critical phase is **configuration**. This involves editing the `filebeat.yml` file to define which logs to monitor and where to send them (i.e., the Splunk instance's address and authentication token).
+With the agent installed, the next phase is configuration. This involves editing the `/etc/filebeat/filebeat.yml` file to define which logs to monitor (**inputs**) and where to send them (**outputs**).
+
+First, the `filebeat.inputs` section was configured to monitor the target log files. Custom fields were added to tag the data for easier searching in Splunk.
+
+<img width="726" height="543" alt="image" src="https://github.com/user-attachments/assets/5bb34abc-1a5f-4255-8ea5-ac6b071360ec" />
+
+Next, the `output.splunk` section was configured with the Splunk instance's local address and the unique HEC token generated from the Splunk UI.
+
+<img width="822" height="424" alt="image" src="https://github.com/user-attachments/assets/31bf775c-1bdf-46d1-91af-3b72dac9c21a" />
+
+---
+
+## Step 4: Troubleshooting and Validation
+
+After configuring the YAML file, the Filebeat service was enabled to run on startup and then started.
+<img width="822" height="356" alt="image" src="https://github.com/user-attachments/assets/f8cfd732-2a02-49ca-9404-866dbbe6ad3c" />
+
+Initially, the service failed to start, entering a crash loop. This is a common issue when configuring YAML files. The troubleshooting process involved:
+1.  Using `sudo systemctl status filebeat` to identify the crash loop.
+2.  Using `sudo filebeat test config -e` to check for syntax errors.
+3.  Reviewing the configuration, which revealed the root cause: the default `output.elasticsearch` was still active alongside the new `output.splunk`. Filebeat can only have one active output.
+
+After commenting out the `output.elasticsearch` section, the service started successfully. This validation demonstrates a key analyst skill: **systematic troubleshooting**.
+<img width="1358" height="543" alt="image" src="https://github.com/user-attachments/assets/9e824ebf-a43e-4a16-b988-189733c06f7a" />
+
+---
+
+## Step 5: Verifying Data Ingestion in Splunk
+
+The final step is to confirm that the data pipeline is working by querying the logs in Splunk. A simple search for `index="main"` in the Search & Reporting app confirms that Linux logs are being successfully received, parsed, and indexed by the SIEM.
+
+[Add a screenshot of your Splunk search results here]
