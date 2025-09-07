@@ -1,16 +1,16 @@
 # SIEM Log Ingestion: Linux Endpoint
 
-This project documents the end-to-end process of ingesting logs from a Linux endpoint into a Splunk SIEM. Centralizing logs is a core function of a **Security Operations Center (SOC)**, enabling analysts to monitor for threats, investigate incidents, and maintain security posture across an environment.
+This project documents the end-to-end process of ingesting logs from a Linux endpoint into a Splunk SIEM. Centralizing logs is a core function of a **Security Operations Center (SOC)**, enabling analysts to monitor for threats, investigate incidents, and maintain security posture across an environment. This write-up details the initial setup, a multi-stage troubleshooting process, and the final successful data ingestion.
 
 ---
 
 ## Step 1: Log Source Analysis
 
-The first step is to identify the most valuable log sources on the Linux machine. These logs, located in `/var/log`, contain detailed records of system and user activity. For a SOC analyst, certain logs are more critical than others.
+The first step is to identify the most valuable log sources on the Linux machine. For this project, the focus was on authentication and general system logs.
 
 **Key Logs for Security Monitoring:**
-* `/var/log/auth.log`: This is a **high-value security log**. It records all authentication events, including successful and failed SSH login attempts, `sudo` command usage (privilege escalation), and user account modifications. Analyzing this log is critical for detecting brute-force attacks, unauthorized access, and insider threats.
-* `/var/log/syslog`: This log provides broad **operational context**. It captures messages from the kernel, system daemons, and various applications. It's useful for correlating system errors or service crashes with potential malicious activity.
+* `/var/log/auth.log`: A **high-value security log** that records all authentication events, including SSH logins, `sudo` usage, and user management. It is critical for detecting brute-force attacks and unauthorized access.
+* `/var/log/syslog`: Provides broad **operational context** by capturing messages from the kernel and various system services, which is useful for correlating system errors with potential malicious activity.
 
 <img width="822" height="441" alt="image" src="https://github.com/user-attachments/assets/af1cded7-8da3-4267-9f8c-9aa82dff000e" />
 
@@ -18,87 +18,68 @@ The first step is to identify the most valuable log sources on the Linux machine
 
 ## Step 2: Forwarder Deployment
 
-A **log forwarder** is a lightweight agent installed on an endpoint to collect logs and send them to a central location. For this project, **Filebeat** was selected. While Splunk has a native Universal Forwarder, experience with Filebeat demonstrates flexibility with different toolsets. The image below confirms the successful installation of the agent.
+A **log forwarder** is a lightweight agent installed on an endpoint to collect and send logs to a central location. **Filebeat** was selected for this project to demonstrate flexibility with non-native Splunk tools.
 
 <img width="822" height="441" alt="image" src="https://github.com/user-attachments/assets/4c4b9ff1-be59-4727-88a7-33279e30c278" />
 
 ---
 
-## Step 3: Forwarder Configuration
+## Step 3: Initial Forwarder Configuration
 
-With the agent installed, the next phase is configuration. This involves editing the `/etc/filebeat/filebeat.yml` file to define which logs to monitor (**inputs**) and where to send them (**outputs**).
+The `/etc/filebeat/filebeat.yml` file was configured to define the log sources (**inputs**) and the Splunk destination (**outputs**).
 
-First, the `filebeat.inputs` section was configured to monitor the target log files. Custom fields were added to tag the data for easier searching in Splunk.
-
+The `inputs` section was configured to monitor `/var/log/auth.log` and `/var/log/syslog`.
 <img width="726" height="543" alt="image" src="https://github.com/user-attachments/assets/5bb34abc-1a5f-4255-8ea5-ac6b071360ec" />
 
-Next, the `output.splunk` section was configured with the Splunk instance's local address and the unique HEC token generated from the Splunk UI.
-
+The `outputs` section was configured to point to the local Splunk HEC on port 8088 using a generated token.
 <img width="822" height="424" alt="image" src="https://github.com/user-attachments/assets/31bf775c-1bdf-46d1-91af-3b72dac9c21a" />
 
 ---
 
-## Step 4: Troubleshooting and Validation
+## Step 4: Advanced Troubleshooting
 
-After configuring the YAML file, the Filebeat service was enabled to run on startup and then started.
-<img width="822" height="356" alt="image" src="https://github.com/user-attachments/assets/f8cfd732-2a02-49ca-9404-866dbbe6ad3c" />
+After the initial configuration, no logs appeared in Splunk. This began a multi-stage troubleshooting process that demonstrates a systematic approach to problem-solving—a critical skill for a SOC analyst.
 
-Initially, the service failed to start, entering a crash loop. This is a common issue when configuring YAML files. The troubleshooting process involved:
-1.  Using `sudo systemctl status filebeat` to identify the crash loop.
-2.  Using `sudo filebeat test config -e` to check for syntax errors.
-3.  Reviewing the configuration, which revealed the root cause: the default `output.elasticsearch` was still active alongside the new `output.splunk`. Filebeat can only have one active output.
+### 4.1 - Diagnosis: Identifying the Root Cause
 
-After commenting out the `output.elasticsearch` section, the service started successfully. This validation demonstrates a key analyst skill: **systematic troubleshooting**.
-<img width="1358" height="543" alt="image" src="https://github.com/user-attachments/assets/9e824ebf-a43e-4a16-b988-189733c06f7a" />
-
----
-
-## Step 5: Verifying Data Ingestion in Splunk
-
-The final step is to confirm that the data pipeline is working by querying the logs in Splunk. A simple search for `index="main"` in the Search & Reporting app confirms that Linux logs are being successfully received, parsed, and indexed by the SIEM.
-
-[Add a screenshot of your Splunk search results here]
-
-
-Troubleshooting starts after i cannot find anything from search queries
-
-Journalctl to find the error log message: 
-
+Though the service appeared to be running, a deeper check of the logs with `journalctl -u filebeat.service` revealed a critical error: **`output type splunk undefined`**.
 <img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/570b850d-3f22-4929-8a1f-775f60bf75b7" />
 
-Copying backup file of the yaml config for filebeat
+This error indicated that the installed version of Filebeat was the OSS (Open Source Software) package, which does not include the necessary Splunk output module. The solution was to perform a clean re-installation with the correct "Standard" package from Elastic. The process involved backing up the configuration, purging the old package, and installing the correct one.
 
+*Backing up the config, purging the old package, and installing the new one:*
 <img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/e8fe28a1-cbfa-4847-82f6-1eee86529f11" />
-
-Purging current filebeat install 
-
 <img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/768f8d75-ca8e-4ffd-b7d0-97c1cd7f49c1" />
-
-Sudo wget filebeat package
-
 <img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/aa3e2f9a-6976-4611-beeb-faf605666b13" />
-
-sudo installing the package 
-
 <img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/227759cb-9729-4eb3-a66f-5db907cfdef2" />
 
-Still did not work, final change was checking the HEC token, and finding it was disabled within Splunk. Screenshot is me enabling it. 
+### 4.2 - Verification: Isolating the Pipeline with `curl`
+
+Even with the correct software, logs were still not appearing. The next step was to test the Splunk HEC receiver directly, bypassing Filebeat entirely. This was done using a `curl` command. The test initially failed, but revealed two new issues:
+1.  The HEC token in Splunk had been disabled. This was re-enabled in the Splunk UI.
+2.  The `curl` command failed with an SSL error, indicating a protocol mismatch.
 
 <img width="1918" height="897" alt="image" src="https://github.com/user-attachments/assets/4eb93a5e-ad96-408a-aa7e-86ec20d36a94" />
 
-Curl command with a successful return after removing https to http 
-
+By changing the protocol in the `curl` command from `https` to `http`, the test was successful, proving the Splunk receiver was now working correctly.
 <img width="862" height="322" alt="image" src="https://github.com/user-attachments/assets/65160db6-84cd-4b4e-aec2-8d9a6458f300" />
 
-Searching index="main" in splunk to find the successful search result 
+---
 
-<img width="1917" height="892" alt="image" src="https://github.com/user-attachments/assets/f30f7b07-e1ce-4178-951a-8c095a33206c" />
+## Step 5: Implementing the Final Fix
 
-Making the change in the filebeat.yaml file, output https to http 
+The successful `curl` test confirmed the final required change: the `hosts` entry in `filebeat.yml` needed to use `http` instead of `httpss`.
 
 <img width="862" height="322" alt="image" src="https://github.com/user-attachments/assets/6f843af2-a985-4e8e-95dd-0dbf633d92c9" />
 
+With this change, and after restarting the service, the data pipeline was fully functional.
 
+---
 
+## Step 6: Final Verification in Splunk
 
+The final step was to query the data in Splunk. The `curl` test event appeared immediately, and shortly after, the Linux `auth.log` and `syslog` events began streaming in as expected.
 
+<img width="1917" height="892" alt="image" src="https://github.com/user-attachments/assets/f30f7b07-e1ce-4178-951a-8c095a33206c" />
+
+This project successfully established a logging pipeline and demonstrated a comprehensive, multi-step troubleshooting methodology to resolve real-world configuration and software issues.
