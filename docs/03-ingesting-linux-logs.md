@@ -58,3 +58,47 @@ After commenting out the `output.elasticsearch` section, the service started suc
 The final step is to confirm that the data pipeline is working by querying the logs in Splunk. A simple search for `index="main"` in the Search & Reporting app confirms that Linux logs are being successfully received, parsed, and indexed by the SIEM.
 
 [Add a screenshot of your Splunk search results here]
+
+
+Troubleshooting starts after i cannot find anything from search queries
+
+Journalctl to find the error log message: 
+
+<img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/570b850d-3f22-4929-8a1f-775f60bf75b7" />
+
+Copying backup file of the yaml config for filebeat
+
+<img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/e8fe28a1-cbfa-4847-82f6-1eee86529f11" />
+
+Purging current filebeat install 
+
+<img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/768f8d75-ca8e-4ffd-b7d0-97c1cd7f49c1" />
+
+Sudo wget filebeat package
+
+<img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/aa3e2f9a-6976-4611-beeb-faf605666b13" />
+
+sudo installing the package 
+
+<img width="1174" height="322" alt="image" src="https://github.com/user-attachments/assets/227759cb-9729-4eb3-a66f-5db907cfdef2" />
+
+Still did not work, final change was checking the HEC token, and finding it was disabled within Splunk. Screenshot is me enabling it. 
+
+<img width="1918" height="897" alt="image" src="https://github.com/user-attachments/assets/4eb93a5e-ad96-408a-aa7e-86ec20d36a94" />
+
+Curl command with a successful return after removing https to http 
+
+<img width="862" height="322" alt="image" src="https://github.com/user-attachments/assets/65160db6-84cd-4b4e-aec2-8d9a6458f300" />
+
+Searching index="main" in splunk to find the successful search result 
+
+<img width="1917" height="892" alt="image" src="https://github.com/user-attachments/assets/f30f7b07-e1ce-4178-951a-8c095a33206c" />
+
+Making the change in the filebeat.yaml file, output https to http 
+
+<img width="862" height="322" alt="image" src="https://github.com/user-attachments/assets/6f843af2-a985-4e8e-95dd-0dbf633d92c9" />
+
+
+
+
+
