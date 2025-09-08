@@ -30,6 +30,12 @@ Errore message relating to kernel
 
 <img width="500" height="358" alt="image" src="https://github.com/user-attachments/assets/64bf3fdd-0826-4006-bddd-77547da0f712" />
 
+Disabling Secure Boot in the BIOS to resolve the error 
+
+<img width="1012" height="655" alt="image" src="https://github.com/user-attachments/assets/8f4c0b0b-7f5d-4d2e-afb6-ff43a3051718" />
+
+
+
 
 
 
