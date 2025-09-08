@@ -52,15 +52,25 @@ The solution was to reboot the host machine, enter the UEFI/BIOS setup, and disa
 ---
 ## 5. Post-Installation and Final Configuration
 
-After resolving the driver issue, the Windows 11 installation proceeded normally.
+After the Windows 11 installation was complete, several critical post-installation steps were performed to prepare the VM for its role as a monitored endpoint in the lab.
+
 <img width="1406" height="834" alt="image" src="https://github.com/user-attachments/assets/0ae66c2c-f22d-41a0-bb24-ce555c78de90" />
 
-Once at the desktop, several final configuration steps were taken:
-1.  **VirtualBox Guest Additions** were installed to improve performance and enable features like shared clipboards and better screen resolution.
-2.  The **Network Adapter** was configured to **`Bridged Adapter`** mode. This allows the VM to have its own IP address on the local network, enabling communication with the Splunk host.
-3.  A **Snapshot** of the clean, freshly installed state was taken. This is a critical best practice that creates a "save point," allowing for a quick revert if any future configurations cause issues.
+### 5.1 - Installing VirtualBox Guest Additions
+The first step was to install **VirtualBox Guest Additions**. This is a package of essential drivers and system utilities that tightly integrates the guest OS (Windows 11) with the host OS (Linux Mint), enabling features like a shared clipboard, drag-and-drop, and proper screen resolution.
+
+### 5.2 - Configuring the Network Adapter
+To allow the Windows VM to communicate with the Splunk server running on the Linux host, the network adapter was changed from the default `NAT` to **`Bridged Adapter`** mode.
+
+<img width="742" height="497" alt="image" src="https://github.com/user-attachments/assets/d4cb6b90-e740-43fb-9772-d6ae120a9bf4" />
+
+This setting effectively places the VM on the same local network as the host computer, giving it its own unique IP address. It's like plugging a new physical computer into the router. This is the ideal setup for a SOC lab as it allows all components (endpoints, SIEM) to communicate as if they were separate machines on a real network.
+
+### 5.3 - Creating a Baseline Snapshot
+Finally, a **Snapshot** of the clean, freshly configured VM was taken. This is a critical best practice in virtualization that saves a point-in-time state of the machine. It allows for an instant revert to this clean state if a future configuration change, software installation, or malware test causes problems, saving hours of rebuild time.
 
 <img width="480" height="353" alt="image" src="https://github.com/user-attachments/assets/a0817525-1faf-4f73-8bcb-6ec98cb7ee80" />
+
 
 ---
 ## 6. Final Verification
