@@ -100,3 +100,4 @@ A search against Splunk's internal logs (`index=_internal sourcetype=splunkd_ale
 
 <img width="1916" height="851" alt="image" src="https://github.com/user-attachments/assets/53a9f4ba-43c1-4979-8d2e-2ec025c87f08" />
 
+
