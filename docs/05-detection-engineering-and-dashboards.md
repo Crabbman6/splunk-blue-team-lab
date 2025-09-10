@@ -22,7 +22,6 @@ index="main" sourcetype="linux_secure" "Failed password for"
 | rename src_ip as "Source IP", user as "Username"
 | sort -count
 ```
-
 * **`rex`**: Extracts the username and source IP from the raw log text.
 * **`stats`**: Counts the number of failures and groups them by the newly extracted fields.
 * **`rename` / `sort`**: Cleans up the column names and sorts the results to show the most frequent attempts at the top.
@@ -32,12 +31,48 @@ The successful query results are shown below on the "Statistics" tab.
 <img width="957" height="502" alt="image" src="https://github.com/user-attachments/assets/efa9a308-a2e8-4bea-bd33-8643eccd35a2" />
 
 ### 1.3 - Operationalizing the Detection
-To make this detection useful for daily monitoring, the query was operationalized.
-
-First, the successful search was saved as a **Report** named "Linux - Failed SSH Login Attempts".
+To make this detection useful for daily monitoring, the query was saved as a **Report** named "Linux - Failed SSH Login Attempts".
 
 <img width="960" height="325" alt="image" src="https://github.com/user-attachments/assets/a10590f3-0a2d-4c95-bb0d-452ebc938ca6" />
 
 Next, the report was added as a new panel to a **Dashboard** titled "SOC Overview". This provides at-a-glance visibility of potential brute-force activity for a SOC analyst.
 
 <img width="943" height="507" alt="image" src="https://github.com/user-attachments/assets/83c9e800-099c-454f-80db-59945eb0e892" />
+
+---
+## 2. Use Case: Detecting Suspicious PowerShell Activity
+
+The second detection focuses on identifying suspicious PowerShell execution on the Windows 11 endpoint, a common technique used by attackers for "living-off-the-land" attacks.
+
+### 2.1 - Initial Detection Attempt & Troubleshooting
+The process began by generating a test event using an encoded PowerShell command, a common obfuscation method. However, the initial Splunk queries failed to find the event.
+
+<img width="1253" height="840" alt="image" src="https://github.com/user-attachments/assets/b5b91aa9-a37f-4974-b365-ec81035aa780" />
+<img width="1916" height="551" alt="image" src="https://github.com/user-attachments/assets/550c1959-20f0-4e55-9607-a4af6386df81" />
+
+An investigation determined that I was using EventID instead of EventCode, making the searches fail.
+
+### 2.2 - Detection Query Development (Post-Fix)
+A new test event was generated using `Invoke-Expression` (`iex`), another suspicious indicator.
+
+<img width="1023" height="839" alt="image" src="https://github.com/user-attachments/assets/f37366a9-3a22-4f58-bd89-763b2c2442d9" />
+
+The following query was then used to successfully find the event.
+
+```spl
+sourcetype="Sysmon" EventCode=1 Image="*\\powershell.exe" CommandLine
+```
+The successful search results, showing the raw event text and the command line arguments, are shown below.
+
+<img width="1229" height="414" alt="image" src="https://github.com/user-attachments/assets/5b2c9b0b-9d7b-4719-a44c-ec49746c7f43" />
+<img width="1911" height="831" alt="image" src="https://github.com/user-attachments/assets/640d34f3-17a2-4959-9186-af4774c8c4c4" />
+
+### 2.3 - Operationalizing the Detection
+Finally, the successful query was saved as a report and added to the "SOC Overview" dashboard.
+
+---
+## 3. Final SOC Dashboard
+
+The result is a single-pane-of-glass dashboard providing visibility into key potential threats on both Linux and Windows endpoints, simulating a core function of a real-world Security Operations Center.
+
+<img width="1912" height="849" alt="image" src="https://github.com/user-attachments/assets/75c63a7e-23c1-450b-b160-235f8d867413" />
