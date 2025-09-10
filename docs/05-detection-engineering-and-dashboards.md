@@ -76,3 +76,27 @@ Finally, the successful query was saved as a report and added to the "SOC Overvi
 The result is a single-pane-of-glass dashboard providing visibility into key potential threats on both Linux and Windows endpoints, simulating a core function of a real-world Security Operations Center.
 
 <img width="1912" height="849" alt="image" src="https://github.com/user-attachments/assets/75c63a7e-23c1-450b-b160-235f8d867413" />
+
+---
+## 4. Operationalizing Detections with Automated Alerts
+
+While dashboards are great for visualization, a SOC needs automated alerts to be notified of threats in real-time. This section covers converting the "Failed SSH Logins" detection into a scheduled alert.
+
+### 3.1 - Alert Configuration
+The saved report was configured to run on a schedule and trigger an action if results were found. Key best practices were implemented:
+* **Schedule:** The alert was set to run every 5 minutes using a cron schedule (`*/5 * * * *`).
+* **Time Range:** The time range was set to match the schedule (**"Last 5 minutes"**) to ensure only new events are processed, preventing duplicate alerts.
+* **Trigger Action:** A "Log Event" action was configured with custom text using tokens (`$result.user$`, `$result.src_ip$`) to create an enriched, informative alert event.
+
+<img width="1917" height="853" alt="image" src="https://github.com/user-attachments/assets/c629b0f0-40fd-4bfd-ac3e-e3fdc8cfac8b" />
+<img width="800" height="771" alt="image" src="https://github.com/user-attachments/assets/62001a80-eed8-427a-95dc-67171a226f71" />
+
+### 4.2 - Verification
+To test the alert, a failed SSH login was simulated on the Linux host.
+
+<img width="653" height="438" alt="image" src="https://github.com/user-attachments/assets/476bff4b-ba62-4887-a379-1d4ae5386676" />
+
+A search against Splunk's internal logs (`index=_internal sourcetype=splunkd_alert_actions`) confirmed that the alert fired successfully, logging the custom event with the attacker's details.
+
+<img width="1916" height="851" alt="image" src="https://github.com/user-attachments/assets/53a9f4ba-43c1-4979-8d2e-2ec025c87f08" />
+
