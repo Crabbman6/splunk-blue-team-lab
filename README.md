@@ -1,69 +1,58 @@
 # SOC Analyst Portfolio: Splunk SIEM Home Lab
 
-![Splunk](https://img.shields.io/badge/Splunk-000000?style=for-the-badge&logo=splunk)
-![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
-![Windows](https://img.shields.io/badge/Windows_11-0078D4?style=for-the-badge&logo=windows-11&logoColor=white)
+![Splunk](https://img.shields.io/badge/Splunk-9.2-000000?style=for-the-badge&logo=splunk)
+![Kali Linux](https://img.shields.io/badge/Kali_Linux-5B7180?style=for-the-badge&logo=kali-linux&logoColor=white)
+![Windows 11](https://img.shields.io/badge/Windows_11-0078D4?style=for-the-badge&logo=windows-11&logoColor=white)
+![Linux Mint](https://img.shields.io/badge/Linux_Mint-87C375?style=for-the-badge&logo=linux-mint&logoColor=white)
 ![Sysmon](https://img.shields.io/badge/Sysmon-0078D4?style=for-the-badge&logo=windows-terminal&logoColor=white)
 
 ---
 
 ## 🎯 Project Overview
 
-This repository serves as a portfolio of my hands-on experience in building a fully functional Security Operations Center (SOC) home lab. The primary goal is to simulate a real-world security environment using **Splunk Enterprise** to ingest, parse, and analyze logs from both Linux and Windows endpoints. This project demonstrates my practical skills in SIEM administration, threat detection engineering, and incident analysis, all of which are crucial for an entry-level SOC Analyst role.
+This repository documents a comprehensive Security Operations Center (SOC) home lab built from the ground up. The project simulates a real-world security monitoring environment using **Splunk Enterprise** to ingest, analyze, and detect threats across both Linux and Windows systems.
+
+The project is broken down into distinct phases, from initial lab setup and data ingestion to detection engineering and the validation of those detections through simulated attacks. It serves as a practical demonstration of the core competencies required for a SOC Analyst role.
 
 ---
 
 ## 🛠️ Lab Architecture
 
-The lab is designed to be a lightweight yet effective environment for security monitoring. All components are virtualized or run locally, simulating a typical small business network.
+This lab operates on a single host machine, which serves as both the SIEM server and a monitored Linux endpoint. Virtualization is used to create additional endpoints for monitoring and attack simulation.
 
-| Component         | Technology / OS          | Purpose                                        |
-| ----------------- | ------------------------ | ---------------------------------------------- |
-| **SIEM Host** | Linux Mint 21            | Hosts the Splunk Enterprise instance.          |
-| **Linux Endpoint**| Ubuntu Server (VM)       | Generates system and authentication logs.      |
-| **Windows Endpoint**| Windows 11 (VM)        | Generates Windows Event Logs & Sysmon data.    |
-| **Log Forwarders**| Filebeat / Splunk UF     | Collects and forwards logs to Splunk.          |
+| Component | Technology / OS | Purpose |
+| :--- | :--- | :--- |
+| **Host / SIEM / Linux Endpoint** | Linux Mint 21 | Runs Splunk, hosts VMs, and is monitored as the primary Linux endpoint. |
+| **Windows Endpoint**| Windows 11 (VM) | A virtualized endpoint used to generate and forward Windows-specific logs. |
+| **Attacker Machine**| Kali Linux (VM) | A virtualized endpoint used to simulate attacks and validate detections. |
 
-![Lab Diagram](screenshots/lab-diagram.png)
+For a detailed breakdown of the virtualization and network configuration, please see the full setup documentation:
+* **[01-Lab-Setup-and-Architecture.md](./docs/01-lab-setup-and-architecture.md)**
 
 ---
 
-## 🚀 Core Projects & Detections
+## 🚀 Project Phases & Documentation
 
-This section details the key security use cases implemented in the lab. Each project includes log source configuration, Splunk parsing, and the development of detection rules using **Splunk Processing Language (SPL)**.
+This project was completed in several phases, each with its own detailed write-up documenting the process, challenges, and outcomes.
 
-### 1. [Linux Endpoint Monitoring & Threat Detection](./01-Linux-Log-Ingestion.md)
-* **Objective:** Ingest critical Linux logs to monitor for common attack vectors.
-* **Log Source:** `/var/log/auth.log` and `/var/log/syslog` forwarded via Filebeat.
-* **Detections Implemented:**
-    * Brute-Force SSH attempt detection.
-    * Alert for successful SSH login from a new IP address.
-    * Monitoring of `sudo` command usage for privilege escalation.
-
-### 2. [Windows Endpoint Security with Sysmon](./02-Windows-Sysmon-Ingestion.md)
-* **Objective:** Gain deep visibility into Windows host activity using Sysmon.
-* **Log Source:** Windows Event Logs (Security, System, Application) and Sysmon logs forwarded via the Splunk Universal Forwarder.
-* **Detections Implemented:**
-    * Detection of suspicious PowerShell commands (e.g., encoded commands, download cradles).
-    * Identification of Mimikatz-like process access (`lsass.exe`).
-    * Monitoring for persistence mechanisms (e.g., new scheduled tasks, registry run keys).
-
-### 3. [Dashboards & Alerting](./03-Dashboards-and-Alerting.md)
-* **Objective:** Visualize security events and create automated alerts for high-fidelity threats.
-* **Technologies:** Splunk Dashboards, SPL, and Splunk Alerting framework.
-* **Features:**
-    * **SOC Overview Dashboard:** A single pane of glass showing failed logins, notable Sysmon events, and network traffic highlights.
-    * **Real-time Alerts:** Configured email alerts for critical detections, such as multiple failed logins followed by a success from the same IP.
+| Phase | Summary |
+| :--- | :--- |
+| **1. SIEM Initialization** | Deployed Splunk Enterprise on the Linux host and performed initial health checks to ensure the platform was operational before ingesting data. **([Read the full write-up](./docs/02-starting-splunk.md))** |
+| **2. Linux Log Ingestion** | Established a logging pipeline from the Linux host to Splunk using the Splunk Universal Forwarder. This section includes a detailed case study of troubleshooting a third-party log shipper (Filebeat). **([Read the full write-up](./docs/03-ingesting-linux-logs.md))** |
+| **3. Windows Log Ingestion** | Integrated a Windows 11 endpoint, deploying Sysmon for deep visibility and the Splunk Universal Forwarder. This document details an advanced, multi-stage troubleshooting narrative to resolve complex permissions and configuration issues. **([Read the full write-up](./docs/04-ingesting-windows-logs.md))** |
+| **4. Detection Engineering** | Moved from data collection to analysis. Developed custom SPL queries to detect specific threats (SSH Brute-Force on Linux, Suspicious PowerShell on Windows), visualized them on a SOC dashboard, and configured automated alerts. **([Read the full write-up](./docs/05-detection-engineering-and-dashboards.md))** |
+| **5. Attack Simulation** | Validated the Linux SSH brute-force detection by launching a simulated attack from a Kali Linux VM using Hydra, proving the end-to-end effectiveness of the detection and alerting pipeline. **([Read the full write-up](./docs/06-attack-simulation-and-validation.md))** |
 
 ---
 
 ## 💡 Skills Demonstrated
 
-This project showcases a range of technical competencies essential for a Blue Team or SOC role:
+This project showcases a range of technical competencies essential for a modern SOC role:
 
-* **SIEM Administration:** Deployed and configured Splunk Enterprise, including index management, data inputs (HEC), and forwarder management.
-* **Log Analysis:** Parsed and normalized varied log formats from both Linux and Windows operating systems.
-* **Threat Detection Engineering:** Wrote custom detection rules in SPL to identify indicators of compromise (IOCs) and tactics, techniques, and procedures (TTPs).
-* **Endpoint Security:** Configured and monitored Windows endpoints with Sysmon for advanced threat hunting capabilities.
-* **Data Visualization:** Built intuitive dashboards in Splunk to provide actionable security insights for analysts.
-* **Incident Response:** Developed alerting logic to flag high-priority security events for immediate investigation.
+* **SIEM Administration:** Deployment, configuration, and health monitoring of Splunk Enterprise.
+* **Log Management:** Configuration of log forwarders (Splunk UF, Filebeat) for both Linux (`syslog`, `auth.log`) and Windows (Event Logs, Sysmon) data sources.
+* **Systematic Troubleshooting:** A core focus of this project, demonstrating a methodical approach to diagnosing and resolving complex issues related to software, networking, and permissions.
+* **Detection Engineering:** Development of custom detection rules using Splunk Processing Language (SPL) to identify specific attacker techniques.
+* **Security Monitoring:** Creation of dashboards for at-a-glance visualization and automated alerts for real-time threat notification.
+* **Attack Simulation:** Validation of defensive measures by simulating a common attack vector (SSH Brute-Force) with an offensive security tool (Hydra).
+* **Virtualization & Networking:** Setup and configuration of a multi-machine virtual lab environment using VirtualBox and bridged networking.
