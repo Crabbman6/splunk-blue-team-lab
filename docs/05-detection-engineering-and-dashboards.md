@@ -82,7 +82,7 @@ The result is a single-pane-of-glass dashboard providing visibility into key pot
 
 While dashboards are great for visualization, a SOC needs automated alerts to be notified of threats in real-time. This section covers converting the "Failed SSH Logins" detection into a scheduled alert.
 
-### 3.1 - Alert Configuration
+### 4.1 - Alert Configuration
 The saved report was configured to run on a schedule and trigger an action if results were found. Key best practices were implemented:
 * **Schedule:** The alert was set to run every 5 minutes using a cron schedule (`*/5 * * * *`).
 * **Time Range:** The time range was set to match the schedule (**"Last 5 minutes"**) to ensure only new events are processed, preventing duplicate alerts.
@@ -99,5 +99,43 @@ To test the alert, a failed SSH login was simulated on the Linux host.
 A search against Splunk's internal logs (`index=_internal sourcetype=splunkd_alert_actions`) confirmed that the alert fired successfully, logging the custom event with the attacker's details.
 
 <img width="1916" height="851" alt="image" src="https://github.com/user-attachments/assets/53a9f4ba-43c1-4979-8d2e-2ec025c87f08" />
+
+### 4.3 - Use Case 2: Windows Suspicious PowerShell Alert
+
+The final step was to create a corresponding alert for the "Suspicious PowerShell Activity" detection on the Windows endpoint.
+
+#### Troubleshooting the Alert Configuration
+Initially, the **"Edit Schedule"** option was missing from the report's edit menu, which prevented an alert from being created.
+
+<img width="1297" height="273" alt="image" src="https://github.com/user-attachments/assets/5e8613c7-df9d-41e8-9073-06ac76fb0c18" />
+
+An investigation into the report's properties revealed the root cause: the report had been saved as a **"real-time"** search. Real-time searches run continuously and cannot be scheduled, so Splunk disables the alerting feature for them.
+
+<img width="592" height="220" alt="image" src="https://github.com/user-attachments/assets/452bb7ae-e1e6-441d-b16b-f4e5a183d2bf" />
+
+The solution was to re-run the search using a historical time range (e.g., "Last 30 minutes") and save it as a new report (`v2`). This ensured the report was no longer real-time.
+
+<img width="654" height="550" alt="image" src="https://github.com/user-attachments/assets/13e35b0c-0e30-4b42-9dae-19afb5f459e5" />
+
+This fix was verified by checking the new `v2` report, which now correctly displayed the **"Edit Schedule"** option. This troubleshooting process highlights the importance of understanding specific SIEM features when creating alerts.
+
+<img width="1295" height="517" alt="image" src="https://github.com/user-attachments/assets/48599f21-1a57-4ca4-8917-443b6763a35d" />
+
+#### Final Alert Configuration
+With the report issue resolved, the alert was configured with the same logic as the Linux alert: a 5-minute schedule with a matching 5-minute time range, triggering a "Log Event" action. Tokens were used to populate the alert with the specific host, user, and command line for immediate context.
+
+<img width="646" height="618" alt="image" src="https://github.com/user-attachments/assets/cc13029d-73c0-47d3-a3ae-6fba96152051" />
+<img width="644" height="614" alt="image" src="https://github.com/user-attachments/assets/f255bdd7-558d-4c89-a313-4fe04e08e5e7" />
+
+The new report was then added to the "SOC Overview" dashboard.
+
+<img width="547" height="501" alt="image" src="https://github.com/user-attachments/assets/1239608d-3a6b-4511-9f0b-e7cddcd07cba" />
+
+The final dashboard now provides a single-pane-of-glass view into potential threats on both the Linux and Windows endpoints in the lab.
+
+<img width="937" height="715" alt="image" src="https://github.com/user-attachments/assets/7ed6fc0c-6064-48a6-a997-00aeda7d24e9" />
+
+<img width="923" height="296" alt="image" src="https://github.com/user-attachments/assets/401961e1-8792-4fd8-bb98-980acda06df1" />
+
 
 
