@@ -29,7 +29,7 @@ The attack ran successfully, rapidly trying each password and eventually finding
 <img width="1395" height="855" alt="image" src="https://github.com/user-attachments/assets/9082469f-1f7a-4879-a0d8-372efc884e6a" />
 
 ### 1.2 - The Detection
-Immediately after the attack began, the **"SOC Overview" dashboard** in Splunk provided immediate visibility into the attack. The "Failed SSH Logins" panel populated with thousands of events originating from the Kali VM's IP address, confirming the SPL query was correctly identifying the brute-force activity in near real-time.
+Immediately after the attack began, the **"SOC Overview" dashboard** in Splunk provided immediate visibility into the attack. The "Failed SSH Logins" panel populated with events originating from the Kali VM's IP address, confirming the SPL query was correctly identifying the brute-force activity in near real-time.
 
 <img width="1890" height="421" alt="image" src="https://github.com/user-attachments/assets/72257e5a-11af-41d8-8092-90d05b00df79" />
 
